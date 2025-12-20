@@ -1,0 +1,53 @@
+const express = require('express');
+const multer  = require('multer');
+const path = require('path');
+const upload = require('../middlewares/multerMiddleware');
+
+
+const NewsController = require('../controllers/NewsController');
+const StatController = require('../controllers/StatController');
+
+
+/**
+ * Setup semua route untuk package.
+ * @param {express.Router} router - Router Express yang sudah ada.
+ * @param {object} services - Semua services yang telah diinisialisasi.
+ * @param {object} config - Konfigurasi package lengkap.
+ */
+module.exports = (router, services, config) => {
+    // Inisialisasi Controllers dengan services dan config yang dibutuhkan
+    const newsController = new NewsController(services.news, services.stat, config);
+    const statController = new StatController(services.news, services.stat);
+    const beritaUpload = upload.fields([
+        { name: 'thumbnailImage', maxCount: 1 },
+        { name: 'contentImages', maxCount: 10 }
+    ]);
+
+    // 1. Ekspos Aset Statis (CSS)
+    // Misalnya, package diakses di /berita-kami, maka aset diakses di /berita-kami/nc-assets
+    // router.use(config.assetsUrlPrefix, express.static(config.assetsPath));
+
+    // 2. Route Publik (Front-end)
+    // Route ini menggunakan prefix yang ditentukan oleh pengguna (default: '/')
+    // router.get(config.publicRoutePrefix, newsController.listPublic.bind(newsController));
+
+    router.get(config.publicRoutePrefix + 'list', newsController.listPublic.bind(newsController));
+    
+    router.get(`${config.publicRoutePrefix}post/:slug`, 
+            statController.trackVisitMiddleware.bind(statController), 
+            newsController.getDetail.bind(newsController));
+    
+
+    const adminRouter = express.Router();
+
+    adminRouter.get('/list', newsController.adminList.bind(newsController)); 
+    adminRouter.get('/:slug', newsController.getDetail.bind(newsController)); 
+
+    adminRouter.post('/create', beritaUpload, newsController.createPost.bind(newsController)); 
+    adminRouter.put('/update/:id', newsController.updatePost.bind(newsController)); 
+
+    adminRouter.delete('/delete/:id', newsController.deletePost.bind(newsController)); 
+    router.use(config.adminRoutePrefix, adminRouter);
+    router.get('/api/trending', statController.getTrendingApi.bind(statController));
+
+};
