@@ -7,15 +7,24 @@ class StatService {
     }
 
     async trackVisit(newsId, sessionId) {
-        try {
-            await this.VisitorLog.create({
+        const TWENTY_FOUR_HOURS_AGO = new Date(new Date() - 24 * 60 * 60 * 1000);
+
+        const existingVisit = await this.VisitorLog.findOne({
+            where: {
                 newsId: newsId,
                 sessionId: sessionId,
+                visitedAt: {
+                    [Op.gt]: TWENTY_FOUR_HOURS_AGO
+                }
+            }
+        });
+
+        if (!existingVisit) {
+            return await this.VisitorLog.create({
+                newsId,
+                sessionId,
                 visitedAt: new Date()
             });
-            return true;
-        } catch (error) {
-            return false;
         }
     }
 

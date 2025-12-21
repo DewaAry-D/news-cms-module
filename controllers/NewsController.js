@@ -1,10 +1,12 @@
 const fs = require('fs');
+const News = require('../models/News');
+const { Op, fn, col, where } = require('sequelize');
 
 class NewsController {
     constructor(newsService, statService, config) {
         this.newsService = newsService;
         this.statService = statService;
-        this.config = config; // Digunakan untuk passing config ke view (e.g. baseUrl)
+        this.config = config;
     }
 
 
@@ -32,6 +34,7 @@ class NewsController {
 
             const totalPages = Math.ceil(totalItems / perPage);
 
+            //ini mati klo dah ada view
             res.status(200).json({
                 success: true,
                 data: posts,
@@ -283,6 +286,7 @@ class NewsController {
         }
     }
 
+    //ini blum selesai
     async deletePost(req, res) {
         try {
             const { id } = req.params;
@@ -300,6 +304,22 @@ class NewsController {
         } catch (error) {
             console.error(error);
             res.status(500).json({ success: false, message: 'Failed to delete post.', error: error.message });
+        }
+    }
+
+    async dashboardAdmin(req, res) {
+        try {
+            const currentYear = new Date().getFullYear();
+            
+            const data = await this.newsService.dashboardAdmin(currentYear);
+
+            res.status(200).json({
+                success: true,
+                data
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, message: 'Failed to load data.', error: error.message });
         }
     }
 

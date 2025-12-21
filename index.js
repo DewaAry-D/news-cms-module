@@ -7,6 +7,7 @@
 
 
 const express = require('express');
+const session = require('express-session');
 const initModels = require('./models'); 
 const initServices = require('./services'); 
 const setupRoutes = require('./routes');
@@ -50,6 +51,15 @@ module.exports = async (dbConfig, userOptions = {}) => {
     
     router.use(express.json());
     router.use(express.urlencoded({ extended: true }));
+    router.use(session({
+        secret: userOptions.sessionSecret || 'news_module_default_secret',
+        resave: false,
+        saveUninitialized: true,
+        cookie: { 
+            maxAge: 24 * 60 * 60 * 1000,
+            secure: false // Set true jika aplikasi Anda menggunakan HTTPS
+        }
+    }));
 
     setupRoutes(router, services, finalConfig);
 

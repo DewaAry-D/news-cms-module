@@ -41,8 +41,9 @@ module.exports = (router, services, config) => {
 
     const adminRouter = express.Router();
 
+    adminRouter.get('/dashboard', newsController.dashboardAdmin.bind(newsController)); 
     adminRouter.get('/list', newsController.adminList.bind(newsController)); 
-    adminRouter.get('/:slug', newsController.getDetail.bind(newsController)); 
+    adminRouter.get('/:slug', newsController.getDetailForAdmin.bind(newsController)); 
 
     adminRouter.post('/create', beritaUpload, CreateNewsValidationRules, validate, newsController.createPost.bind(newsController)); 
     adminRouter.patch('/update/:id', newsController.updateStatusNews.bind(newsController)); 

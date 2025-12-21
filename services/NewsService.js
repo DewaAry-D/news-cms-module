@@ -1,9 +1,10 @@
-const { Op } = require("sequelize");
+const { Op, fn, col, where } = require("sequelize");
 
 class NewsService {
-    constructor(NewsModel, ContentNewsModel) {
+    constructor(NewsModel, ContentNewsModel, VisitorLogModel) {
         this.News = NewsModel;
         this.ContentNews = ContentNewsModel;
+        this.VisitorLog = VisitorLogModel
     }
 
     async getAllPosts({ offset = 0, limit = 10, title = '', category = '', status = '' }) {
@@ -33,7 +34,7 @@ class NewsService {
             where: { slug, status: 'PUBLISHED' },
             include: [{
                 model: this.ContentNews,
-                as: 'blocks',
+                as: 'contentBlocks',
                 order: [['order', 'ASC']]
             }]
         });
@@ -44,7 +45,7 @@ class NewsService {
             where: { slug },
             include: [{
                 model: this.ContentNews,
-                as: 'blocks',
+                as: 'contentBlocks',
                 order: [['order', 'ASC']]
             }]
         });
@@ -52,12 +53,9 @@ class NewsService {
 
     async createPost(newsData, contentBlocks, files) {
         return this.News.sequelize.transaction(async (t) => {
-            // console.log("step 2 dilalui");
             const rawPath = files['thumbnailImage']?.[0]?.path;
             newsData.imagePath = rawPath ? rawPath.replace(/\\/g, '/') : null;
             const newsItem = await this.News.create(newsData, { transaction: t });
-
-            // console.log("step 3 dilalui");
 
             let blocks = [];
             let count = 0;
@@ -73,7 +71,6 @@ class NewsService {
                 blocks.push(element);
             });
 
-            // console.log("step 4 dilalui");
 
             await this.ContentNews.bulkCreate(blocks, { transaction: t });
             return newsItem;
@@ -82,14 +79,10 @@ class NewsService {
 
     async updatePost(id, newsData, contentBlocks, files) {
         return this.News.sequelize.transaction(async (t) => {
-            console.log("step 0 selesai");
-
             const oldNews = await this.News.findByPk(id, {
                 include: [{ model: this.ContentNews, as: 'contentBlocks' }],
                 transaction: t
             });
-
-            console.log("step 1 selesai");
             
             if (!oldNews) throw new Error("Berita tidak ditemukan");
 
@@ -103,11 +96,7 @@ class NewsService {
                 newsData.imagePath = oldNews.imagePath;
             }
 
-            console.log("step 2 selesai");
-
             await oldNews.update(newsData, { transaction: t });
-
-            console.log("step 3 selesai");
 
             const oldBlocks = oldNews.contentBlocks || [];
             
@@ -116,12 +105,8 @@ class NewsService {
                 transaction: t
             });
 
-            console.log("step 4 selesai");
-
             let blocks = [];
             let imageCount = 0;
-
-            console.log("step 5 selesai");
 
             contentBlocks.forEach((element, index) => {
                 if (element.blockType === "IMAGE") {
@@ -158,8 +143,34 @@ class NewsService {
         return news;
     }
 
+    //belum selesai
     async deletePost(id) {
         return this.News.destroy({ where: { id } });
+    }
+
+    async dashboardAdmin(currentYear) {
+        const newsCount = await this.News.count(); 
+
+        const monthlyVisitors = await this.VisitorLog.findAll({
+            attributes: [
+                [fn('MONTH', col('visitedAt')), 'month'],
+                [fn('COUNT', col('id')), 'total']
+            ],
+            where: where(fn('YEAR', col('visitedAt')), currentYear),
+            group: [fn('MONTH', col('visitedAt'))],
+            raw: true
+        });
+
+        const totalYearlyVisitors = await this.VisitorLog.count({
+            where: where(fn('YEAR', col('visitedAt')), currentYear)
+        });
+
+        const categoryCount = await this.News.count({
+            distinct: true,
+            col: 'category'
+        });
+
+        return { newsCount, categoryCount, monthlyVisitors,totalYearlyVisitors };
     }
 }
 

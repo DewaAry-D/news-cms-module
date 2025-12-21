@@ -8,7 +8,7 @@ const StatService = require('./StatService');
  */
 module.exports = (db) => {
     return {
-        news: new NewsService(db.News, db.ContentNews),
+        news: new NewsService(db.News, db.ContentNews, db.VisitorLog),
         stat: new StatService(db.VisitorLog, db.News),
         db: db 
     };

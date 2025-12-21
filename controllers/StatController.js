@@ -4,29 +4,33 @@ class StatController {
         this.statService = statService;
     }
 
-    // Middleware untuk pelacakan kunjungan blum selesai
     async trackVisitMiddleware(req, res, next) {
         try {
             const slug = req.params.slug;
-            
             const post = await this.newsService.getPostBySlug(slug);
 
-            if (!post) {
-                return next(); 
+            console.log("step 1");
+            
+
+            if (post) {
+                console.log("sebelum if");
+                if (!req.session.viewedPosts) {
+                    req.session.viewedPosts = [];
+                }
+
+                if (!req.session.viewedPosts.includes(post.id)) {
+                    const sessionId = req.sessionID || req.ip;
+                    await this.statService.trackVisit(post.id, sessionId);
+                    
+                    req.session.viewedPosts.push(post.id);
+                }
+                
+                req.postData = post;
             }
-            
-            const newsId = post.id;
-            
-            const sessionId = req.sessionID || req.ip; 
-            
-            await this.statService.trackVisit(newsId, sessionId);
-            
-            req.postData = post;
 
         } catch (error) {
             console.error("News tracking failed but request continued:", error);
         }
-        
         next();
     }
 
