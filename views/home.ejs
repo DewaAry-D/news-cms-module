@@ -6,326 +6,215 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Beranda - DeNews</title>
 
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
-  <!-- CSS Styles -->
   <link rel="stylesheet" href="/berita/style.css" />
 </head>
 
 <body>
-  <!-- Public Header -->
   <nav class="navbar">
     <i class="fa-solid fa-bars" id="menu-icon"></i>
-    <!-- Logo -->
     <div class="logo">
-      <a href="./home.html"><img src="../../img/logo.png" alt="Logo DeNews" /></a>
+      <a href="/berita/list"><img src="/berita/img/logo.png" alt="Logo DeNews" /></a>
     </div>
 
-    <!-- Menu Navbar -->
     <ul class="menu">
-      <li><a href="./nasional.html">Nasional</a></li>
       <li>
-        <a href="./internasional.html">Internasional</a>
+        <a href="/berita/list" class="<%= !query.category ? 'active' : '' %>">Beranda</a>
       </li>
-      <li><a href="./olahraga.html">Olahraga</a></li>
-      <li><a href="./teknologi.html">Teknologi</a></li>
-      <li><a href="./hiburan.html">Hiburan</a></li>
-      <li><a href="./bisnis.html">Bisnis</a></li>
-      <li><a href="./pendidikan.html">Pendidikan</a></li>
-      <li><a href="./kesehatan.html">Kesehatan</a></li>
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle <%= query.category ? 'active' : '' %>">
+          Kategori <i class="fa-solid fa-chevron-down"></i>
+        </a>
+        <ul class="dropdown-menu">
+          <% categories.forEach(cat=> { %>
+            <li>
+              <a href="?category=<%= cat %>" class="<%= query.category === cat ? 'dropdown-active' : '' %>">
+                <%= cat.charAt(0).toUpperCase() + cat.slice(1) %>
+              </a>
+            </li>
+            <% }); %>
+        </ul>
+      </li>
     </ul>
 
-    <!-- Search and Login -->
     <div class="search-login">
-      <!-- Search Bar -->
-      <div class="search-bar">
-        <i class="fa-solid fa-magnifying-glass"></i>
-
-        <div class="input-box">
-          <input type="text" placeholder="Search..." />
-        </div>
-      </div>
-
-
+      <form action="/berita/list" method="GET" class="search-bar">
+        <% if (query.category) { %>
+          <input type="hidden" name="category" value="<%= query.category %>" />
+          <% } %>
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <div class="input-box">
+              <input type="text" name="title" placeholder="Cari berita..." value="<%= query.title %>" />
+            </div>
+      </form>
     </div>
   </nav>
 
   <main class="container">
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="hero-card">
-        <a href="article.html">
-          <img src="../../img/Main.png" alt="Hero" class="hero-image" />
-          <div class="hero-content">
-            <span class="badge-trending">Trending</span>
-            <h2 class="hero-title">
-              ONE PUNCH MAN SEASON 3 MENJADI ADAPTASI ANIME YANG PALING
-              MENGECEWAKAN DI MUSIM FALL 2025
-            </h2>
-            <div class="meta-white">
-              <span>Oleh: Mangde</span>
-              <span>|</span>
-              <span>November 16, 2025</span>
-              <span>|</span>
-              <span>Kategori: Hiburan</span>
+    <% if (!query.title && trending && trending.length> 0 ) { const hero = trending[0];
+      %>
+
+      <section class="hero-section">
+        <div class="hero-card">
+          <a href="/berita/post/<%= hero.slug %>">
+            <img src="<%= hero.imagePath 
+          ? hero.imagePath.replace('public/', '/berita/') 
+          : '/berita/img/Main.png' %>" alt="<%= hero.title %>" class="hero-image" />
+
+            <div class="hero-content">
+              <span class="badge-trending"> 🔥 Trending </span>
+
+              <h2 class="hero-title">
+                <%= hero.title %>
+              </h2>
+
+              <div class="meta-white">
+                <span>Oleh: <%= hero.authorName %></span>
+                <span>|</span>
+                <span>
+                  <%= new Date(hero.createdAt).toLocaleDateString('id-ID', { day: 'numeric' , month: 'long' ,
+                    year: 'numeric' }) %>
+                </span>
+                <span>|</span>
+                <span>
+                  <%= hero.category %>
+                </span>
+                <% if (hero.views) { %>
+                  <span>|</span>
+                  <span> <i class="fa-solid fa-eye"></i>
+                    <%= hero.views %>
+                  </span>
+                  <% } %>
+              </div>
             </div>
+          </a>
+        </div>
+      </section>
+
+      <% } %>
+        <% if (posts && posts.length> 0) { %>
+
+          <div class="news-layout">
+            <section>
+              <h2 class="section-title">
+                <%= query.title ? `Hasil Pencarian: "${query.title}" ` : (query.category ? `Kategori: ${query.category}`
+                  : 'Berita Terbaru' ) %>
+              </h2>
+
+              <div class="news-grid">
+                <% posts.forEach(post=> { %>
+                  <a href="/berita/post/<%= post.slug %>" class="news-card">
+                    <img src="<%= post.imagePath
+          ? post.imagePath.replace('public/', '/berita/')
+          : '/berita/img/berita.png' %>" class="news-thumb" alt="<%= post.title %>" />
+                    <div class="news-body">
+                      <h3 class="news-title">
+                        <%= post.title %>
+                      </h3>
+                      <p class="news-meta">
+                        <%= new Date(post.createdAt).toLocaleDateString('id-ID') %> |
+                          <%= post.category %>
+                      </p>
+                    </div>
+                  </a>
+                  <% }) %>
+              </div>
+
+              <nav class="pagination">
+                <% if (pagination.hasPrevPage) { %>
+                  <a href="?page=<%= pagination.currentPage - 1 %>&title=<%= query.title %>&category=<%= query.category %>"
+                    class="page-item">&lt;</a>
+                  <% } %>
+                    <% for (let i=1; i <=pagination.totalPages; i++) { %>
+                      <a href="?page=<%= i %>&title=<%= query.title %>&category=<%= query.category %>"
+                        class="page-item <%= pagination.currentPage === i ? 'active' : '' %>">
+                        <%= i %>
+                      </a>
+                      <% } %>
+                        <% if (pagination.hasNextPage) { %>
+                          <a href="?page=<%= pagination.currentPage + 1 %>&title=<%= query.title %>&category=<%= query.category %>"
+                            class="page-item">&gt;</a>
+                          <% } %>
+              </nav>
+            </section>
+
+            <aside>
+              <div class="sidebar-section">
+                <h2 class="section-title">Sedang Trending</h2>
+                <div class="sidebar-list">
+                  <% trending.forEach(item=> { %>
+                    <a href="/berita/post/<%= item.slug %>" class="mini-card">
+                      <img
+                        src="<%= item.imagePath ? item.imagePath.replace('public/', '/berita/') : '/berita/img/berita2.png' %>"
+                        class="mini-thumb" />
+                      <div class="mini-content">
+                        <h4 class="mini-title">
+                          <%= item.title %>
+                        </h4>
+                        <p class="news-meta">
+                          <%= item.authorName %> | <%= new Date(item.createdAt).toLocaleDateString('id-ID') %>
+                        </p>
+                      </div>
+                    </a>
+                    <% }); %>
+                </div>
+              </div>
+            </aside>
           </div>
-        </a>
-      </div>
-    </section>
 
-    <div class="news-layout">
-      <!-- Main News Grid -->
-      <div>
-        <h2 class="section-title">Berita Terbaru</h2>
-        <div class="news-grid">
-          <!-- Item 1 -->
-          <a href="article.html" class="news-card">
-            <img src="../../img/berita.png" class="news-thumb" />
-            <div class="news-body">
-              <h3 class="news-title">
-                10 Karakter Terkuat di Anime One Punch Man yang Sulit
-                Dikalahkan
-              </h3>
-              <p class="news-meta">16 November 2025 | Kategori: Hiburan</p>
+          <% } else { %>
+
+            <div style="text-align: center; padding: 50px">
+              <i class="fa-solid fa-face-frown" style="font-size: 50px; color: #ccc"></i>
+              <h3>Maaf, berita tidak ditemukan.</h3>
+              <p>Coba gunakan kata kunci lain atau pilih kategori yang berbeda.</p>
+              <a href="/berita/list" class="btn-primary">Kembali ke Beranda</a>
             </div>
-          </a>
 
-          <!-- Item 2 -->
-          <a href="article.html" class="news-card">
-            <img src="../../img/berita.png" class="news-thumb" />
-            <div class="news-body">
-              <h3 class="news-title">
-                10 Karakter Terkuat di Anime One Punch Man yang Sulit
-                Dikalahkan
-              </h3>
-              <p class="news-meta">16 November 2025 | Kategori: Hiburan</p>
-            </div>
-          </a>
-
-          <!-- Item 3 -->
-          <a href="article.html" class="news-card">
-            <img src="../../img/berita.png" class="news-thumb" />
-            <div class="news-body">
-              <h3 class="news-title">
-                10 Karakter Terkuat di Anime One Punch Man yang Sulit
-                Dikalahkan
-              </h3>
-              <p class="news-meta">16 November 2025 | Kategori: Hiburan</p>
-            </div>
-          </a>
-
-          <!-- Item 4 -->
-          <a href="article.html" class="news-card">
-            <img src="../../img/berita.png" class="news-thumb" />
-            <div class="news-body">
-              <h3 class="news-title">
-                10 Karakter Terkuat di Anime One Punch Man yang Sulit
-                Dikalahkan
-              </h3>
-              <p class="news-meta">16 November 2025 | Kategori: Hiburan</p>
-            </div>
-          </a>
-
-          <!-- Item 5 -->
-          <a href="article.html" class="news-card">
-            <img src="../../img/berita.png" class="news-thumb" />
-            <div class="news-body">
-              <h3 class="news-title">
-                10 Karakter Terkuat di Anime One Punch Man yang Sulit
-                Dikalahkan
-              </h3>
-              <p class="news-meta">16 November 2025 | Kategori: Hiburan</p>
-            </div>
-          </a>
-
-          <!-- Item 6 -->
-          <a href="article.html" class="news-card">
-            <img src="../../img/berita.png" class="news-thumb" />
-            <div class="news-body">
-              <h3 class="news-title">
-                10 Karakter Terkuat di Anime One Punch Man yang Sulit
-                Dikalahkan
-              </h3>
-              <p class="news-meta">16 November 2025 | Kategori: Hiburan</p>
-            </div>
-          </a>
-        </div>
-
-        <div class="pagination">
-          <span class="page-item">&lt;</span>
-          <span class="page-item active">1</span>
-          <span class="page-item">2</span>
-          <span class="page-item">3</span>
-          <span class="page-item">...</span>
-          <span class="page-item">5</span>
-          <span class="page-item">10</span>
-          <span class="page-item">&gt;</span>
-        </div>
-      </div>
-
-      <!-- Sidebar -->
-      <aside>
-        <div class="sidebar-section">
-          <h2 class="section-title">Berita Trending</h2>
-          <div class="sidebar-list">
-            <!-- Repeat items -->
-            <a href="article.html" class="mini-card">
-              <img src="../../img/berita2.png" class="mini-thumb" />
-              <div class="mini-content">
-                <h4 class="mini-title">
-                  One Punch Man Hiatus hingga Waktu Lama...
-                </h4>
-                <p class="news-meta">Oleh: Yogi | Nov 16, 2025</p>
-              </div>
-            </a>
-            <a href="article.html" class="mini-card">
-              <img src="../../img/berita2.png" class="mini-thumb" />
-              <div class="mini-content">
-                <h4 class="mini-title">
-                  One Punch Man Hiatus hingga Waktu Lama...
-                </h4>
-                <p class="news-meta">Oleh: Yogi | Nov 16, 2025</p>
-              </div>
-            </a>
-            <a href="article.html" class="mini-card">
-              <img src="../../img/berita2.png" class="mini-thumb" />
-              <div class="mini-content">
-                <h4 class="mini-title">
-                  One Punch Man Hiatus hingga Waktu Lama...
-                </h4>
-                <p class="news-meta">Oleh: Yogi | Nov 16, 2025</p>
-              </div>
-            </a>
-            <a href="article.html" class="mini-card">
-              <img src="../../img/berita2.png" class="mini-thumb" />
-              <div class="mini-content">
-                <h4 class="mini-title">
-                  One Punch Man Hiatus hingga Waktu Lama...
-                </h4>
-                <p class="news-meta">Oleh: Yogi | Nov 16, 2025</p>
-              </div>
-            </a>
-            <a href="article.html" class="mini-card">
-              <img src="../../img/berita2.png" class="mini-thumb" />
-              <div class="mini-content">
-                <h4 class="mini-title">
-                  One Punch Man Hiatus hingga Waktu Lama...
-                </h4>
-                <p class="news-meta">Oleh: Yogi | Nov 16, 2025</p>
-              </div>
-            </a>
-            <a href="article.html" class="mini-card">
-              <img src="../../img/berita2.png" class="mini-thumb" />
-              <div class="mini-content">
-                <h4 class="mini-title">
-                  One Punch Man Hiatus hingga Waktu Lama...
-                </h4>
-                <p class="news-meta">Oleh: Yogi | Nov 16, 2025</p>
-              </div>
-            </a>
-            <a href="article.html" class="mini-card">
-              <img src="../../img/berita2.png" class="mini-thumb" />
-              <div class="mini-content">
-                <h4 class="mini-title">
-                  One Punch Man Hiatus hingga Waktu Lama...
-                </h4>
-                <p class="news-meta">Oleh: Yogi | Nov 16, 2025</p>
-              </div>
-            </a>
-            <a href="article.html" class="mini-card">
-              <img src="../../img/berita2.png" class="mini-thumb" />
-              <div class="mini-content">
-                <h4 class="mini-title">
-                  One Punch Man Hiatus hingga Waktu Lama...
-                </h4>
-                <p class="news-meta">Oleh: Yogi | Nov 16, 2025</p>
-              </div>
-            </a>
-            <a href="article.html" class="mini-card">
-              <img src="../../img/berita2.png" class="mini-thumb" />
-              <div class="mini-content">
-                <h4 class="mini-title">
-                  One Punch Man Hiatus hingga Waktu Lama...
-                </h4>
-                <p class="news-meta">Oleh: Yogi | Nov 16, 2025</p>
-              </div>
-            </a>
-            <a href="article.html" class="mini-card">
-              <img src="../../img/berita2.png" class="mini-thumb" />
-              <div class="mini-content">
-                <h4 class="mini-title">
-                  One Punch Man Hiatus hingga Waktu Lama...
-                </h4>
-                <p class="news-meta">Oleh: Yogi | Nov 16, 2025</p>
-              </div>
-            </a>
-          </div>
-        </div>
-      </aside>
-    </div>
+            <% } %>
   </main>
 
-  <!-- Footer -->
   <footer class="site-footer">
     <div class="footer-container">
       <div class="footer-top">
         <div class="footer-brand">
           <div class="footer-logo">
-            <img src="../../img/logo.png" alt="DeNews Logo" class="logo" />
+            <img src="/berita/img/logo.png" alt="DeNews Logo" class="logo" />
           </div>
           <p class="footer-desc">
-            DeNews adalah platform berita digital yang menyajikan informasi
-            akurat, cepat, dan terpercaya.
+            DeNews menyajikan informasi akurat, cepat, dan terpercaya setiap
+            hari.
           </p>
         </div>
 
         <div class="footer-links">
-          <h3 class="footer-heading">Browse by Category</h3>
+          <h3 class="footer-heading">Kategori Populer</h3>
           <ul class="category-grid">
-            <li><a href="#">Nasional</a></li>
-            <li><a href="#">Teknologi</a></li>
-            <li><a href="#">Pendidikan</a></li>
-            <li><a href="#">Internasional</a></li>
-            <li><a href="#">Hiburan</a></li>
-            <li><a href="#">Kesehatan</a></li>
-            <li><a href="#">Olahraga</a></li>
-            <li><a href="#">Bisnis</a></li>
+            <% categories.slice(0, 8).forEach(cat=> { %>
+              <li><a href="/berita/list?category=<%= cat %>">
+                  <%= cat %>
+                </a></li>
+              <% }) %>
           </ul>
         </div>
 
         <div class="footer-social">
-          <h3 class="footer-heading text-white">Follow Us</h3>
+          <h3 class="footer-heading text-white">Ikuti Kami</h3>
           <div class="social-icons">
-            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-square"></i></a>
-            <a href="#" aria-label="Twitter"><i class="fab fa-twitter-square"></i></a>
-            <a href="#" aria-label="Instagram"><i class="fab fa-instagram-square"></i></a>
+            <a href="#"><i class="fab fa-facebook-square"></i></a>
+            <a href="#"><i class="fab fa-twitter-square"></i></a>
+            <a href="#"><i class="fab fa-instagram-square"></i></a>
           </div>
         </div>
       </div>
-
-      <hr class="footer-divider" />
-
       <div class="footer-bottom">
-        <div class="copyright">
-          &copy; 2025 DeNews. Semua hak cipta dilindungi undang-undang.
-        </div>
-        <div class="legal-links">
-          <a href="#">Redaksi</a>
-          <span class="separator">|</span>
-          <a href="#">Pedoman Media Siber</a>
-          <span class="separator">|</span>
-          <a href="#">Kebijakan Privasi</a>
-          <span class="separator">|</span>
-          <a href="#">Disclaimer</a>
-        </div>
+        <div class="copyright">&copy; 2025 DeNews.</div>
       </div>
     </div>
   </footer>
 
-  <!-- Javascript -->
-  <script src="../../js/script.js"></script>
+  <script src="/berita/js/script.js"></script>
 </body>
 
 </html>

@@ -11,9 +11,9 @@ class NewsController {
     }
 
     async listPublic(req, res) {
-        const { 
+        const {
             page = 1,
-            limit = 10,
+            limit = 6,
             title = '',
             category = ''
         } = req.query;
@@ -25,9 +25,9 @@ class NewsController {
 
         try {
             const { rows: posts, count: totalItems } = await this.newsService.getAllPosts({
-                offset, 
-                limit: perPage, 
-                title, 
+                offset,
+                limit: perPage,
+                title,
                 category,
                 status: "PUBLISHED"
             });
@@ -38,27 +38,38 @@ class NewsController {
             const trending = await this.newsService.getTrendingNews();
 
             //ini mati klo dah ada view
-            res.status(200).json({
-                success: true,
-                data: {
-                    posts,
-                    categories,
-                    trending,
-                    pagination: {
-                        totalItems,
-                        totalPages,
-                        currentPage,
-                        perPage,
-                        hasNextPage: currentPage < totalPages,
-                        hasPrevPage: currentPage > 1
-                    }
-                }
-            });
+            // res.status(200).json({
+            //     success: true,
+            //     data: {
+            //         posts,
+            //         categories,
+            //         trending,
+            //         pagination: {
+            //             totalItems,
+            //             totalPages,
+            //             currentPage,
+            //             perPage,
+            //             hasNextPage: currentPage < totalPages,
+            //             hasPrevPage: currentPage > 1
+            //         }
+            //     }
+            // });
 
             //render
-            // res.render(path.join(__dirname, '../views/home.ejs'), { 
-            //     posts: posts 
-            // });
+            res.render(path.join(__dirname, "../views/home.ejs"), {
+                posts,
+                categories,
+                trending,
+                query: { title, category },
+                pagination: {
+                    totalItems,
+                    totalPages,
+                    currentPage,
+                    perPage,
+                    hasNextPage: currentPage < totalPages,
+                    hasPrevPage: currentPage > 1,
+                },
+            });
 
         } catch (error) {
             //console.error('Error loading news list:', error);
@@ -75,27 +86,28 @@ class NewsController {
             const news = await this.newsService.getPostBySlug(req.params.slug);
             if (!news) {
                 return res.status(404).json({
-                    succses: false,
+                    success: false,
                     error: 'news tidak ditemukan'
                 });
             }
 
+            const categories = await this.newsService.getUniqueCategories();
             const recommendation = await this.newsService.getRecommendationNews(news.category);
+            const trending = await this.newsService.getTrendingNews();
 
-            res.status(200).json({
-                success: true,
-                data: {
-                    news,
-                    recommendation
-                }
-            })
-            
-            // Render detail view
-            // res.render('detail', { post, baseUrl: req.baseUrl });
+            res.render(path.join(__dirname, "../views/detail.ejs"), {
+                news,
+                categories,
+                recommendation,
+                trending,
+                query: {}
+            });
         } catch (error) {
+            console.error('Error loading news detail:', error);
             res.status(500).json({
-                succses: false,
-                error: 'gagal melihat news'
+                success: false,
+                error: 'gagal melihat news',
+                message: error.message
             });
         }
     }
@@ -114,7 +126,7 @@ class NewsController {
                 success: true,
                 data: post
             })
-            
+
             // Render detail view
             // res.render('detail', { post, baseUrl: req.baseUrl });
         } catch (error) {
@@ -125,10 +137,10 @@ class NewsController {
             });
         }
     }
-    
+
     // Route Admin (CRUD)
     async adminList(req, res) {
-        const { 
+        const {
             page = 1,
             limit = 10,
             title = '',
@@ -143,9 +155,9 @@ class NewsController {
 
         try {
             const { rows: posts, count: totalItems } = await this.newsService.getAllPosts({
-                offset, 
-                limit: perPage, 
-                title, 
+                offset,
+                limit: perPage,
+                title,
                 category,
                 status: status.toUpperCase()
             });
@@ -185,7 +197,7 @@ class NewsController {
             const category = req.body.category.toLowerCase();
             const files = req.files;
             const slug = title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
-            
+
             const newNews = await this.newsService.createPost(
                 { title, slug, category, authorName, status: status || 'DRAFT' },
                 contentBlocks,
@@ -215,7 +227,7 @@ class NewsController {
                     });
                 });
             }
-            
+
             res.status(500).json({
                 succses: false,
                 error: 'gagal membuat news'
@@ -277,7 +289,7 @@ class NewsController {
     async updateStatusNews(req, res) {
         const { id } = req.params;
         try {
-            const {status} = req.body;
+            const { status } = req.body;
 
             const result = await this.newsService.updateStatusNews(
                 id,
@@ -324,7 +336,7 @@ class NewsController {
     async dashboardAdmin(req, res) {
         try {
             const currentYear = new Date().getFullYear();
-            
+
             const data = await this.newsService.dashboardAdmin(currentYear);
 
             res.status(200).json({
