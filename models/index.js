@@ -19,7 +19,7 @@ module.exports = (config) => {
     
     db.News.hasMany(db.ContentNews, {
         foreignKey: 'newsId',
-        as: 'blocks', 
+        as: 'contentBlocks', 
         onDelete: 'CASCADE' 
     });
     db.ContentNews.belongsTo(db.News, {
@@ -27,7 +27,6 @@ module.exports = (config) => {
         as: 'newsItem'
     });
 
-    
     db.News.hasMany(db.VisitorLog, {
         foreignKey: 'newsId',
         as: 'visits',

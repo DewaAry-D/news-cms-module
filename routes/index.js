@@ -2,7 +2,8 @@ const express = require('express');
 const multer  = require('multer');
 const path = require('path');
 const upload = require('../middlewares/multerMiddleware');
-
+const {CreateNewsValidationRules, UpdateNewsValidationRules} = require('../validations/newsValidations');
+const {validate} = require('../validations/mainValidation');
 
 const NewsController = require('../controllers/NewsController');
 const StatController = require('../controllers/StatController');
@@ -43,11 +44,12 @@ module.exports = (router, services, config) => {
     adminRouter.get('/list', newsController.adminList.bind(newsController)); 
     adminRouter.get('/:slug', newsController.getDetail.bind(newsController)); 
 
-    adminRouter.post('/create', beritaUpload, newsController.createPost.bind(newsController)); 
-    adminRouter.put('/update/:id', newsController.updatePost.bind(newsController)); 
+    adminRouter.post('/create', beritaUpload, CreateNewsValidationRules, validate, newsController.createPost.bind(newsController)); 
+    adminRouter.patch('/update/:id', newsController.updateStatusNews.bind(newsController)); 
+    adminRouter.put('/update/:id', beritaUpload, UpdateNewsValidationRules, validate, newsController.updatePost.bind(newsController)); 
+    
 
     adminRouter.delete('/delete/:id', newsController.deletePost.bind(newsController)); 
     router.use(config.adminRoutePrefix, adminRouter);
     router.get('/api/trending', statController.getTrendingApi.bind(statController));
-
 };

@@ -52,12 +52,12 @@ class NewsService {
 
     async createPost(newsData, contentBlocks, files) {
         return this.News.sequelize.transaction(async (t) => {
-            console.log("step 2 dilalui");
+            // console.log("step 2 dilalui");
             const rawPath = files['thumbnailImage']?.[0]?.path;
             newsData.imagePath = rawPath ? rawPath.replace(/\\/g, '/') : null;
             const newsItem = await this.News.create(newsData, { transaction: t });
 
-            console.log("step 3 dilalui");
+            // console.log("step 3 dilalui");
 
             let blocks = [];
             let count = 0;
@@ -73,40 +73,89 @@ class NewsService {
                 blocks.push(element);
             });
 
-            console.log("step 4 dilalui");
+            // console.log("step 4 dilalui");
 
             await this.ContentNews.bulkCreate(blocks, { transaction: t });
             return newsItem;
         });
     }
 
-    async updatePost(id, newsData, contentBlocks) {
-        const existingNews = await this.News.findByPk(id);
-        if (!existingNews) {
-            return null;
-        }
-
+    async updatePost(id, newsData, contentBlocks, files) {
         return this.News.sequelize.transaction(async (t) => {
-            await existingNews.update(newsData, { transaction: t });
+            console.log("step 0 selesai");
 
-            await this.ContentNews.destroy({ 
-                where: { newsId: id },
-                transaction: t 
-            });
-
-            const blocks = contentBlocks.map((block, index) => ({
-                ...block,
-                newsId: id,
-                order: index + 1
-            }));
-
-            await this.ContentNews.bulkCreate(blocks, { transaction: t });
-            
-            return this.News.findByPk(id, {
-                include: [{ model: this.ContentNews, as: 'blocks', order: [['order', 'ASC']] }],
+            const oldNews = await this.News.findByPk(id, {
+                include: [{ model: this.ContentNews, as: 'contentBlocks' }],
                 transaction: t
             });
+
+            console.log("step 1 selesai");
+            
+            if (!oldNews) throw new Error("Berita tidak ditemukan");
+
+            let filesToDelete = [];
+
+            if (files['thumbnailImage']?.[0]) {
+                if (oldNews.imagePath) filesToDelete.push(oldNews.imagePath);
+                const rawPath = files['thumbnailImage'][0].path;
+                newsData.imagePath = rawPath.replace(/\\/g, '/');
+            } else {
+                newsData.imagePath = oldNews.imagePath;
+            }
+
+            console.log("step 2 selesai");
+
+            await oldNews.update(newsData, { transaction: t });
+
+            console.log("step 3 selesai");
+
+            const oldBlocks = oldNews.contentBlocks || [];
+            
+            await this.ContentNews.destroy({
+                where: { newsId: id },
+                transaction: t
+            });
+
+            console.log("step 4 selesai");
+
+            let blocks = [];
+            let imageCount = 0;
+
+            console.log("step 5 selesai");
+
+            contentBlocks.forEach((element, index) => {
+                if (element.blockType === "IMAGE") {
+                    const newFile = files['contentImages']?.[imageCount];
+                    
+                    if (newFile) {
+                        const rawPathE = newFile.path;
+                        element.contentValue = rawPathE.replace(/\\/g, '/');
+                        imageCount++;
+                    } else {
+                        element.contentValue = element.contentValue; 
+                    }
+                }
+                
+                element.newsId = id;
+                element.order = index + 1;
+                blocks.push(element);
+            });
+
+            await this.ContentNews.bulkCreate(blocks, { transaction: t });
+
+            return { newsItem: oldNews, filesToDelete };
         });
+    }
+
+    async updateStatusNews(id, status) {
+        const news = await this.News.findByPk(id);
+        if (!news) throw new Error("Berita tidak ditemukan");
+
+        await news.update({ 
+            status: status 
+        });
+
+        return news;
     }
 
     async deletePost(id) {

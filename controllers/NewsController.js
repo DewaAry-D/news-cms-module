@@ -164,11 +164,11 @@ class NewsController {
     async createPost(req, res) {
         try {
 
-            const { title, authorName, category, status, contentBlocks } = req.body;
+            const { title, authorName, status, contentBlocks } = req.body;
+            const category = req.body.category.toLowerCase();
             const files = req.files;
-
-            const slug = title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''); 
-            console.log("step 1 dilalui");
+            const slug = title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+            
             const newNews = await this.newsService.createPost(
                 { title, slug, category, authorName, status: status || 'DRAFT' },
                 contentBlocks,
@@ -205,48 +205,83 @@ class NewsController {
             });
         }
     }
-    
+
     async updatePost(req, res) {
+        const { id } = req.params;
         try {
-            const { id } = req.params;
-            const { title, summary, authorId, status, contentBlocks } = req.body;
-            
-            if (!id || !title || !contentBlocks) {
-                return res.status(400).json({ success: false, message: 'Missing required fields or ID.' });
-            }
+            const { title, authorName, status, contentBlocks } = req.body;
+            const category = req.body.category.toLowerCase();
+            const files = req.files;
+            const slug = title ? title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '') : undefined;
 
-            const slug = title.toLowerCase().trim().replace(/ /g, '-').replace(/[^\w-]+/g, ''); 
-            const isPublished = status === 'PUBLISHED';
-
-            const updatedPost = await this.newsService.updatePost(
+            const result = await this.newsService.updatePost(
                 id,
-                { 
-                    title, 
-                    slug, 
-                    summary, 
-                    authorId, 
-                    status: status || 'DRAFT',
-                    publishedAt: isPublished ? new Date() : null 
-                },
-                contentBlocks
+                { title, slug, category, authorName, status },
+                contentBlocks,
+                files
             );
 
-            if (!updatedPost) {
-                return res.status(404).json({ success: false, message: 'News post not found for update.' });
+            if (result.filesToDelete && result.filesToDelete.length > 0) {
+                result.filesToDelete.forEach(filePath => {
+                    fs.unlink(filePath, (err) => {
+                        if (err) console.error(`Gagal hapus file lama: ${filePath}`, err);
+                    });
+                });
             }
 
             res.status(200).json({
                 success: true,
-                message: 'Post updated successfully.',
-                data: updatedPost
+                message: 'Berhasil update berita',
+                data: result.newsItem
             });
 
         } catch (error) {
             console.error(error);
-            res.status(500).json({ success: false, message: 'Failed to update post.', error: error.message });
+
+            if (req.files) {
+                const uploadedFiles = [
+                    ...(req.files['thumbnailImage'] || []),
+                    ...(req.files['contentImages'] || [])
+                ];
+                uploadedFiles.forEach(file => {
+                    fs.unlink(file.path, (err) => {
+                        if (err) console.error(`Cleanup error file gagal: ${file.path}`, err);
+                    });
+                });
+            }
+
+            res.status(500).json({
+                success: false,
+                error: error.message || 'Gagal update news'
+            });
         }
     }
 
+    async updateStatusNews(req, res) {
+        const { id } = req.params;
+        try {
+            const {status} = req.body;
+
+            const result = await this.newsService.updateStatusNews(
+                id,
+                status
+            );
+
+            res.status(200).json({
+                success: true,
+                message: 'Berhasil update status berita',
+                data: result
+            });
+
+        } catch (error) {
+            console.error(error);
+
+            res.status(500).json({
+                success: false,
+                error: error.message || 'Gagal update news'
+            });
+        }
+    }
 
     async deletePost(req, res) {
         try {
