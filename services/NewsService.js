@@ -7,6 +7,17 @@ class NewsService {
         this.VisitorLog = VisitorLogModel
     }
 
+    async getRecommendationNews(category) {
+        return this.News.findAll({
+            where: {
+                category
+            },
+            limit: 5,
+            order: [['createdAt', 'DESC']]
+        })
+    }
+
+    //for all
     async getAllPosts({ offset = 0, limit = 10, title = '', category = '', status = '' }) {
         const validStatuses = ['PUBLISHED', 'ARCHIVED', 'DRAFT'];
         const where = {};
@@ -29,6 +40,7 @@ class NewsService {
         });
     }
 
+    //forUser
     async getPostBySlug(slug) {
         return this.News.findOne({
             where: { slug, status: 'PUBLISHED' },
@@ -39,6 +51,8 @@ class NewsService {
             }]
         });
     }
+
+    //forAdmin
 
     async getPostBySlugForAdmin(slug) {
         return this.News.findOne({

@@ -63,17 +63,22 @@ class NewsController {
 
     async getDetail(req, res) {
         try {
-            const post = await this.newsService.getPostBySlug(req.params.slug);
-            if (!post) {
+            const news = await this.newsService.getPostBySlug(req.params.slug);
+            if (!news) {
                 return res.status(404).json({
                     succses: false,
                     error: 'news tidak ditemukan'
                 });
             }
 
+            const recommendation = await this.newsService.getRecommendationNews(news.category);
+
             res.status(200).json({
                 success: true,
-                data: post
+                data: {
+                    news,
+                    recommendation
+                }
             })
             
             // Render detail view
