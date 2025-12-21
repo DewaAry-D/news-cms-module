@@ -1,6 +1,7 @@
 const fs = require('fs');
 const News = require('../models/News');
 const { Op, fn, col, where } = require('sequelize');
+const path = require('path');
 
 class NewsController {
     constructor(newsService, statService, config) {
@@ -8,7 +9,6 @@ class NewsController {
         this.statService = statService;
         this.config = config;
     }
-
 
     async listPublic(req, res) {
         const { 
@@ -34,22 +34,29 @@ class NewsController {
 
             const totalPages = Math.ceil(totalItems / perPage);
 
+            // const categories = await this.newsService.getUniqueCategories();
+
             //ini mati klo dah ada view
-            res.status(200).json({
-                success: true,
-                data: posts,
-                pagination: {
-                    totalItems,
-                    totalPages,
-                    currentPage,
-                    perPage,
-                    hasNextPage: currentPage < totalPages,
-                    hasPrevPage: currentPage > 1
-                }
-            });
+            // res.status(200).json({
+            //     success: true,
+            //     data: {
+            //         posts,
+            //         // categories,
+            //         pagination: {
+            //             totalItems,
+            //             totalPages,
+            //             currentPage,
+            //             perPage,
+            //             hasNextPage: currentPage < totalPages,
+            //             hasPrevPage: currentPage > 1
+            //         }
+            //     }
+            // });
 
             //render
-            // res.render('admin/list', { posts, baseUrl: req.baseUrl });
+            res.render(path.join(__dirname, '../views/home.ejs'), { 
+                posts: posts 
+            });
 
         } catch (error) {
             //console.error('Error loading news list:', error);

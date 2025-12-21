@@ -7,6 +7,57 @@ class NewsService {
         this.VisitorLog = VisitorLogModel
     }
 
+    async getTrendingNews() {
+        try {
+            // 1. Tentukan batas waktu (24 jam yang lalu dari sekarang)
+            const last24Hours = new Date(new Date() - 24 * 60 * 60 * 1000);
+
+            // 2. Query untuk menghitung views per berita
+            const trending = await this.News.findAll({
+                attributes: [
+                    'id', 
+                    'title', 
+                    'slug', 
+                    'category', 
+                    'imagePath',
+                    // Membuat kolom virtual 'totalViews' dari hasil hitung (COUNT)
+                    [fn('COUNT', col('visits.id')), 'totalViews']
+                ],
+                include: [{
+                    model: this.VisitorLog,
+                    as: 'visits', // SESUAI dengan alias relasi Anda
+                    attributes: [], // Kita tidak butuh kolom detail dari VisitorLog
+                    where: {
+                        visitedAt: {
+                            [Op.gt]: last24Hours // Hanya log dalam 24 jam terakhir
+                        }
+                    },
+                    required: true // Menggunakan INNER JOIN agar hanya berita yang ada view-nya yang muncul
+                }],
+                group: ['News.id'], // Kelompokkan berdasarkan ID berita
+                order: [[fn('COUNT', col('visits.id')), 'DESC']], // Urutkan terbanyak ke terendah
+                limit: 10, // Ambil 10 teratas
+                subQuery: false // WAJIB false agar LIMIT dan GROUP BY bekerja benar dengan JOIN
+            });
+
+            return trending;
+        } catch (error) {
+            console.error("Error fetching trending news:", error);
+            throw error;
+        }
+    }
+
+    async getUniqueCategories() {
+        const categories = await this.Post.findAll({
+            attributes: [
+                [Sequelize.fn('DISTINCT', Sequelize.col('category')), 'category']
+            ],
+            where: { status: 'PUBLISHED' },
+            raw: true
+        });
+        return categories.map(item => item.category).filter(Boolean);
+    }
+
     async getRecommendationNews(category) {
         return this.News.findAll({
             where: {

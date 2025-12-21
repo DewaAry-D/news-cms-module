@@ -1,24 +1,10 @@
-/**
- * Fungsi utama package yang di-export.
- * @param {object} dbConfig - Konfigurasi koneksi database dari aplikasi pengguna.
- * @param {object} options - Opsi tambahan (misalnya, nama folder views pengguna).
- * @returns {express.Router} Router Express yang sudah terkonfigurasi.
- */
-
-
 const express = require('express');
 const session = require('express-session');
+const path = require('path');
 const initModels = require('./models'); 
 const initServices = require('./services'); 
 const setupRoutes = require('./routes');
 const mergeConfig = require('./config');
-
-/**
- * Fungsi utama package yang di-export.
- * @param {object} dbConfig - Konfigurasi koneksi database dari aplikasi pengguna.
- * @param {object} userOptions - Opsi tambahan (misalnya, autoMigrate) dari pengguna.
- * @returns {express.Router} Router Express yang sudah terkonfigurasi.
- */
 
 module.exports = async (dbConfig, userOptions = {}) => {
     
@@ -43,12 +29,13 @@ module.exports = async (dbConfig, userOptions = {}) => {
             throw error; 
         }
     }
-    
 
     const services = initServices(db);
-
     const router = express.Router();
-    
+
+    // 2. DAFTARKAN FOLDER PUBLIC MILIK MODUL
+    router.use(express.static(path.join(__dirname, 'public')));
+
     router.use(express.json());
     router.use(express.urlencoded({ extended: true }));
     router.use(session({
@@ -57,7 +44,7 @@ module.exports = async (dbConfig, userOptions = {}) => {
         saveUninitialized: true,
         cookie: { 
             maxAge: 24 * 60 * 60 * 1000,
-            secure: false // Set true jika aplikasi Anda menggunakan HTTPS
+            secure: false 
         }
     }));
 

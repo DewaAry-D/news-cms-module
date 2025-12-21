@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tambah Berita - DeNews</title>
+  <link rel="stylesheet" href="../../css/style.css" />
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo">
+      <a href="index.html" style="display: flex; justify-content: center;"><img src="../../img/logo.png"
+          alt="Logo DeNews" /></a>
+    </div>
+
+    <ul class="nav-menu">
+      <li class="nav-item">
+        <a href="index.html" class="nav-link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+          Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="management.html" class="nav-link active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="9" y1="21" x2="9" y2="9"></line>
+          </svg>
+          Manajemen Berita
+        </a>
+      </li>
+    </ul>
+
+
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <a href="management.html" class="back-link">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      Kembali
+    </a>
+
+    <div class="form-card" style="max-width: 100%;">
+      <form id="newsForm">
+        <h3>Detail Berita</h3>
+        <br />
+
+        <div class="form-group">
+          <label class="form-label">Judul <span class="text-red">*</span></label>
+          <input type="text" class="form-control" id="newsTitle" value="Harga BTC Naik Menjadi 160k" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nama Author <span class="text-red">*</span></label>
+          <input type="text" class="form-control" id="newsAuthor" value="Yogi" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Kategori <span class="text-red">*</span></label>
+          <select class="form-control" id="newsCategory" required>
+            <option value="">Pilih Kategori</option>
+            <option value="Ekonomi" selected>Ekonomi</option>
+            <option value="Hiburan">Hiburan</option>
+            <option value="Olahraga">Olahraga</option>
+            <option value="Nasional">Nasional</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Gambar Thumbnail <span class="text-red">*</span></label>
+          <div class="input-group">
+            <input type="file" class="form-control" id="newsThumbnail" accept="image/*" required />
+          </div>
+        </div>
+
+        <h4>Konten Berita</h4>
+        <div id="contentContainer">
+          <!-- Dynamic Content blocks will be appended here -->
+        </div>
+
+        <!-- Add Content Trigger -->
+        <div id="addContentTrigger" class="dashed-area" onclick="toggleOptions(true)">
+          + Tambah Detail Berita
+        </div>
+
+        <!-- Content Type Options -->
+        <div id="contentTypeOptions" class="content-type-selector" style="display: none;">
+          <button type="button" class="btn btn-primary" onclick="addBlock('paragraph')">📝 Paragraf</button>
+          <button type="button" class="btn btn-primary" onclick="addBlock('video')">🎥 Video</button>
+          <button type="button" class="btn btn-primary" onclick="addBlock('image')">🖼️ Gambar</button>
+          <button type="button" class="btn btn-primary" onclick="addBlock('subheading')">H2 Sub Heading</button>
+          <button type="button" class="btn btn-outline text-red" onclick="toggleOptions(false)">❌ Batal</button>
+        </div>
+
+        <div class="form-actions">
+          <a href="management.html" class="btn btn-outline"
+            style="border-color: #007bff; color: #333; text-align: center; text-decoration: none;">
+            Batal
+          </a>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    const contentContainer = document.getElementById('contentContainer');
+    const addTrigger = document.getElementById('addContentTrigger');
+    const optionsDiv = document.getElementById('contentTypeOptions');
+
+    function toggleOptions(show) {
+      if (show) {
+        window.scrollTo(0, document.body.scrollHeight);
+        addTrigger.style.display = 'none';
+        optionsDiv.style.display = 'flex';
+      } else {
+        addTrigger.style.display = 'block';
+        optionsDiv.style.display = 'none';
+      }
+    }
+
+    function createRemoveBtn(elementToRemove) {
+      const btn = document.createElement('button');
+      btn.className = 'remove-block-btn';
+      btn.innerHTML = '🗑️';
+      btn.type = 'button';
+      btn.onclick = function () {
+        elementToRemove.remove();
+      };
+      return btn;
+    }
+
+    function addBlock(type) {
+      const blockDiv = document.createElement('div');
+      blockDiv.className = 'content-block';
+      blockDiv.dataset.type = type;
+
+      const removeBtn = createRemoveBtn(blockDiv);
+      blockDiv.appendChild(removeBtn);
+
+      const label = document.createElement('label');
+      label.className = 'form-label';
+
+      let inputContainer = document.createElement('div');
+
+      if (type === 'paragraph') {
+        label.textContent = 'Paragraf';
+
+        const input = document.createElement('textarea');
+        input.className = 'form-control';
+        input.name = 'contentValue';
+        input.rows = 4;
+        input.placeholder = 'Tulis paragraf disini...';
+        inputContainer.appendChild(input);
+
+      } else if (type === 'video') {
+        label.textContent = 'Video';
+
+        const urlInput = document.createElement('input');
+        urlInput.type = 'text';
+        urlInput.className = 'form-control mb-2';
+        urlInput.name = 'contentValue';
+        urlInput.placeholder = 'Masukkan URL Video (contoh: YouTube link)';
+        urlInput.style.marginBottom = '10px';
+
+        const captionInput = document.createElement('input');
+        captionInput.type = 'text';
+        captionInput.className = 'form-control';
+        captionInput.name = 'contentCaption';
+        captionInput.placeholder = 'Keterangan video (opsional)...';
+
+        inputContainer.appendChild(urlInput);
+        inputContainer.appendChild(captionInput);
+
+      } else if (type === 'image') {
+        label.textContent = 'Gambar';
+
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.className = 'form-control';
+        fileInput.accept = 'image/*';
+        fileInput.style.marginBottom = '10px';
+
+        const captionInput = document.createElement('input');
+        captionInput.type = 'text';
+        captionInput.className = 'form-control';
+        captionInput.name = 'contentCaption';
+        captionInput.placeholder = 'Keterangan gambar (opsional)...';
+
+        inputContainer.appendChild(fileInput);
+        inputContainer.appendChild(captionInput);
+      } else if (type === 'subheading') {
+        label.textContent = 'Sub Heading';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-control';
+        input.name = 'contentValue';
+        input.placeholder = 'Judul Sub Heading...';
+        inputContainer.appendChild(input);
+      }
+
+      blockDiv.appendChild(label);
+      blockDiv.appendChild(inputContainer);
+      contentContainer.appendChild(blockDiv);
+
+      // Hide options after adding
+      toggleOptions(false);
+    }
+
+    document.getElementById('newsForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      // Basic HTML5 validation will catch required fields in the main form, 
+      // but let's be explicit about dynamic content validation.
+
+      let isValid = true;
+      let errorMsg = '';
+
+      // Main fields validation (Manual check to be sure)
+      const title = document.getElementById('newsTitle').value.trim();
+      const author = document.getElementById('newsAuthor').value.trim();
+      const category = document.getElementById('newsCategory').value;
+      const thumbnailInfo = document.getElementById('newsThumbnail').files;
+
+      if (!title || !author || !category || thumbnailInfo.length === 0) {
+        alert("Mohon lengkapi Detail Berita (Judul, Author, Kategori, Thumbnail)!");
+        return;
+      }
+
+      // Collect and Validate Dynamic Data
+      const newsData = {
+        title: title,
+        author: author,
+        category: category,
+        content: []
+      };
+
+      const blocks = contentContainer.querySelectorAll('.content-block');
+
+      if (blocks.length === 0) {
+        alert("Mohon tambahkan setidaknya satu konten berita!");
+        return;
+      }
+
+      for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
+        const type = block.dataset.type;
+        const blockData = { type: type };
+
+        if (type === 'paragraph' || type === 'subheading') {
+          const val = block.querySelector('[name="contentValue"]').value.trim();
+          if (!val) {
+            isValid = false;
+            errorMsg = `Konten ${type} (urutan ke-${i + 1}) tidak boleh kosong!`;
+            block.querySelector('[name="contentValue"]').focus();
+            break;
+          }
+          blockData.value = val;
+        } else if (type === 'video') {
+          const val = block.querySelector('[name="contentValue"]').value.trim();
+          if (!val) {
+            isValid = false;
+            errorMsg = `URL Video (urutan ke-${i + 1}) tidak boleh kosong!`;
+            block.querySelector('[name="contentValue"]').focus();
+            break;
+          }
+          blockData.value = val;
+          blockData.caption = block.querySelector('[name="contentCaption"]').value.trim();
+        } else if (type === 'image') {
+          const fileInput = block.querySelector('input[type="file"]');
+          console.log(fileInput.files);
+          if (fileInput.files.length === 0) {
+            isValid = false;
+            errorMsg = `File Gambar (urutan ke-${i + 1}) belum dipilih!`;
+            fileInput.focus();
+            break;
+          }
+          blockData.value = fileInput.files[0].name;
+          blockData.caption = block.querySelector('[name="contentCaption"]').value.trim();
+        }
+
+        newsData.content.push(blockData);
+      }
+
+      if (!isValid) {
+        alert(errorMsg);
+        return;
+      }
+
+      console.log('News Data Captured:', newsData);
+      alert('Data berita berhasil divalidasi dan ditangkap! Cek Console untuk JSON.');
+    });
+  </script>
+</body>
+
+</html>

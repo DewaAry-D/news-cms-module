@@ -17,6 +17,7 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING(255),
             allowNull: false,
             unique: true,
+            unique: 'unique_slug_index'
         },
         authorName: {
             type: DataTypes.STRING(50), 
