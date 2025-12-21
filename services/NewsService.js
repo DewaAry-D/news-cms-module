@@ -48,9 +48,9 @@ class NewsService {
     }
 
     async getUniqueCategories() {
-        const categories = await this.Post.findAll({
+        const categories = await this.News.findAll({
             attributes: [
-                [Sequelize.fn('DISTINCT', Sequelize.col('category')), 'category']
+                [fn('DISTINCT', col('category')), 'category']
             ],
             where: { status: 'PUBLISHED' },
             raw: true

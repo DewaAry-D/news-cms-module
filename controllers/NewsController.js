@@ -34,29 +34,31 @@ class NewsController {
 
             const totalPages = Math.ceil(totalItems / perPage);
 
-            // const categories = await this.newsService.getUniqueCategories();
+            const categories = await this.newsService.getUniqueCategories();
+            const trending = await this.newsService.getTrendingNews();
 
             //ini mati klo dah ada view
-            // res.status(200).json({
-            //     success: true,
-            //     data: {
-            //         posts,
-            //         // categories,
-            //         pagination: {
-            //             totalItems,
-            //             totalPages,
-            //             currentPage,
-            //             perPage,
-            //             hasNextPage: currentPage < totalPages,
-            //             hasPrevPage: currentPage > 1
-            //         }
-            //     }
-            // });
+            res.status(200).json({
+                success: true,
+                data: {
+                    posts,
+                    categories,
+                    trending,
+                    pagination: {
+                        totalItems,
+                        totalPages,
+                        currentPage,
+                        perPage,
+                        hasNextPage: currentPage < totalPages,
+                        hasPrevPage: currentPage > 1
+                    }
+                }
+            });
 
             //render
-            res.render(path.join(__dirname, '../views/home.ejs'), { 
-                posts: posts 
-            });
+            // res.render(path.join(__dirname, '../views/home.ejs'), { 
+            //     posts: posts 
+            // });
 
         } catch (error) {
             //console.error('Error loading news list:', error);
