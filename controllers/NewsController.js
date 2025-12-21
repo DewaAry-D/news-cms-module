@@ -114,26 +114,23 @@ class NewsController {
 
     async getDetailForAdmin(req, res) {
         try {
-            const post = await this.newsService.getPostBySlugForAdmin(req.params.slug);
-            if (!post) {
+            const news = await this.newsService.getPostBySlugForAdmin(req.params.slug);
+            if (!news) {
                 return res.status(404).json({
-                    succses: false,
+                    success: false,
                     error: 'news tidak ditemukan'
                 });
             }
 
-            res.status(200).json({
-                success: true,
-                data: post
-            })
-
-            // Render detail view
-            // res.render('detail', { post, baseUrl: req.baseUrl });
+            res.render(path.join(__dirname, "../views/admin/detailadmin.ejs"), {
+                news
+            });
         } catch (error) {
-            // res.status(500).send('Error loading post detail.');
+            console.error('Error loading news detail for admin:', error);
             res.status(500).json({
-                succses: false,
-                error: 'gagal melihat news'
+                success: false,
+                error: 'gagal melihat news',
+                message: error.message
             });
         }
     }
@@ -163,10 +160,13 @@ class NewsController {
             });
 
             const totalPages = Math.ceil(totalItems / perPage);
+            const categories = await this.newsService.getUniqueCategories();
 
-            res.status(200).json({
-                success: true,
-                data: posts,
+            // Render view instead of sending JSON
+            res.render(path.join(__dirname, "../views/admin/list.ejs"), {
+                posts,
+                categories,
+                query: { title, category, status },
                 pagination: {
                     totalItems,
                     totalPages,
@@ -177,11 +177,8 @@ class NewsController {
                 }
             });
 
-            //render
-            // res.render('admin/list', { posts, baseUrl: req.baseUrl });
-
         } catch (error) {
-            //console.error('Error loading news list:', error);
+            console.error('Error loading admin news list:', error);
             res.status(500).json({
                 success: false,
                 error: 'Error loading news list.',
@@ -339,9 +336,13 @@ class NewsController {
 
             const data = await this.newsService.dashboardAdmin(currentYear);
 
-            res.status(200).json({
-                success: true,
-                data
+            // res.status(200).json({
+            //     success: true,
+            //     data
+            // });
+
+            res.render(path.join(__dirname, '../views/admin/dashboard.ejs'), {
+                data: data
             });
         } catch (error) {
             console.error(error);

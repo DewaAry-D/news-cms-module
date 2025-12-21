@@ -413,6 +413,7 @@ hr {
   height: 300px;
   padding-top: 20px;
   padding-bottom: 10px;
+  gap: 10px;
 }
 
 .bar-wrapper {
@@ -420,13 +421,16 @@ hr {
   flex-direction: column;
   align-items: center;
   flex: 1;
+  height: 100%;
+  justify-content: flex-end;
 }
 
 .bar {
-  width: 20px;
-  background-color: #d8d8d8;
+  width: 30px;
+  display: block;
   border-radius: 4px 4px 0 0;
-  transition: height 0.3s;
+  transition: height 0.3s ease;
+  background-color: #4A90E2;
 }
 
 .bar-label {
@@ -529,31 +533,78 @@ hr {
 }
 
 .table td {
-  padding: 15px;
+  padding: 12px 15px;
   border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.col-title {
+  max-width: 250px;
+  /* Reduced from 300px */
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.col-author,
+.col-category {
+  width: 150px;
+}
+
+.col-status {
+  width: 140px;
+}
+
+.col-actions {
+  width: 120px;
 }
 
 .badge {
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: capitalize;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100px;
+  transition: all 0.2s ease;
+  color: white !important;
 }
 
 .badge-published {
-  background-color: var(--primary);
-  color: white;
+  background-color: #007bff;
+  /* Blue */
 }
 
 .badge-draft {
-  background-color: var(--success);
-  color: white;
+  background-color: #28a745;
+  /* Green */
 }
 
 .badge-archived {
   background-color: #fd7e14;
-  color: white;
+  /* Orange */
+}
+
+.badge:hover {
+  filter: brightness(0.9);
+}
+
+.badge::after {
+  content: " \f078";
+  /* fa-chevron-down */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 8px;
 }
 
 .action-buttons {
@@ -1361,12 +1412,8 @@ hr {
   cursor: pointer;
   border: none;
   font-family: inherit;
-  font-size: 16px;
-  color: #000000;
-  background: none;
   position: relative;
   transition: all 0.3s ease;
-  padding: 0;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -1375,9 +1422,7 @@ hr {
 }
 
 .dropdown-toggle::after {
-  content: "";
-  position: absolute;
-  left: 50%;
+  display: none;
   bottom: -5px;
   height: 2px;
   width: 0;
@@ -1401,10 +1446,11 @@ hr {
 }
 
 /* Add a small arrow to indicate it's a dropdown */
-.dropdown-toggle::after {
-  content: "▼";
-  font-size: 0.8em;
-  margin-left: 4px;
+.dropdown-toggle-icon::after {
+  content: " \f107";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  margin-left: 5px;
 }
 
 .dropdown-menu {

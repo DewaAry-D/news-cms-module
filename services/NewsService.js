@@ -54,7 +54,6 @@ class NewsService {
             attributes: [
                 [fn('DISTINCT', col('category')), 'category']
             ],
-            where: { status: 'PUBLISHED' },
             raw: true
         });
         return categories.map(item => item.category).filter(Boolean);
