@@ -125,6 +125,32 @@ class NewsController {
             });
         }
     }
+
+    async getEditForAdmin(req, res) {
+        try {
+            const posts = await this.newsService.getPostBySlugForAdmin(req.params.slug);
+            if (!posts) {
+                return res.status(404).json({
+                    succses: false,
+                    error: 'news tidak ditemukan'
+                });
+            }
+
+            // res.status(200).json({
+            //     success: true,
+            //     data: post
+            // })
+            
+            res.render(path.join(__dirname, '../views/admin/update_news.ejs'), { 
+                data: posts
+            });
+        } catch (error) {
+            res.status(500).json({
+                succses: false,
+                error: 'gagal melihat news'
+            });
+        }
+    }
     
     // Route Admin (CRUD)
     async adminList(req, res) {

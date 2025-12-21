@@ -119,7 +119,9 @@ class NewsService {
     async createPost(newsData, contentBlocks, files) {
         return this.News.sequelize.transaction(async (t) => {
             const rawPath = files['thumbnailImage']?.[0]?.path;
-            newsData.imagePath = rawPath ? rawPath.replace(/\\/g, '/') : null;
+            newsData.imagePath = rawPath 
+                ? rawPath.replace(/\\/g, '/').replace(/^public/, '') 
+                : null;
             const newsItem = await this.News.create(newsData, { transaction: t });
 
             let blocks = [];
@@ -128,7 +130,7 @@ class NewsService {
                 console.log(element);
                 if (element.blockType == "IMAGE") {
                     const rawPathE = files['contentImages']?.[count]?.path;
-                    element.contentValue = rawPathE ? rawPathE.replace(/\\/g, '/') : null;
+                    element.contentValue = rawPathE.replace(/\\/g, '/').replace(/^public/, '');
                     count++;
                 }
                 element.newsId = newsItem.id;
@@ -156,7 +158,8 @@ class NewsService {
             if (files['thumbnailImage']?.[0]) {
                 if (oldNews.imagePath) filesToDelete.push(oldNews.imagePath);
                 const rawPath = files['thumbnailImage'][0].path;
-                newsData.imagePath = rawPath.replace(/\\/g, '/');
+                // newsData.imagePath = rawPath.replace(/\\/g, '/');
+                newsData.imagePath = rawPath.replace(/\\/g, '/').replace(/^public/, '');
             } else {
                 newsData.imagePath = oldNews.imagePath;
             }
@@ -179,7 +182,8 @@ class NewsService {
                     
                     if (newFile) {
                         const rawPathE = newFile.path;
-                        element.contentValue = rawPathE.replace(/\\/g, '/');
+                        // element.contentValue = rawPathE.replace(/\\/g, '/');
+                        element.contentValue = rawPathE.replace(/\\/g, '/').replace(/^public/, '');
                         imageCount++;
                     } else {
                         element.contentValue = element.contentValue; 

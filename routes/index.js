@@ -4,6 +4,7 @@ const path = require('path');
 const upload = require('../middlewares/multerMiddleware');
 const {CreateNewsValidationRules, UpdateNewsValidationRules} = require('../validations/newsValidations');
 const {validate} = require('../validations/mainValidation');
+const {parseContentBlocks} = require('../middlewares/parseForm');
 
 const NewsController = require('../controllers/NewsController');
 const StatController = require('../controllers/StatController');
@@ -40,15 +41,19 @@ module.exports = (router, services, config) => {
     
 
     const adminRouter = express.Router();
+    
+    adminRouter.get('/create', (req, res) => {
+        res.render(path.join(__dirname, '../views/admin/create_news.ejs'));
+    });
+    adminRouter.post('/create', beritaUpload, parseContentBlocks, CreateNewsValidationRules, validate, newsController.createPost.bind(newsController));
 
+    adminRouter.get('/update/:slug', newsController.getEditForAdmin.bind(newsController));
+    adminRouter.patch('/update/:id', newsController.updateStatusNews.bind(newsController)); 
+    adminRouter.put('/update/:id', beritaUpload, parseContentBlocks, UpdateNewsValidationRules, validate, newsController.updatePost.bind(newsController)); 
+    
     adminRouter.get('/dashboard', newsController.dashboardAdmin.bind(newsController)); 
     adminRouter.get('/list', newsController.adminList.bind(newsController)); 
     adminRouter.get('/:slug', newsController.getDetailForAdmin.bind(newsController)); 
-
-    adminRouter.post('/create', beritaUpload, CreateNewsValidationRules, validate, newsController.createPost.bind(newsController)); 
-    adminRouter.patch('/update/:id', newsController.updateStatusNews.bind(newsController)); 
-    adminRouter.put('/update/:id', beritaUpload, UpdateNewsValidationRules, validate, newsController.updatePost.bind(newsController)); 
-    
 
     adminRouter.delete('/delete/:id', newsController.deletePost.bind(newsController)); 
     router.use(config.adminRoutePrefix, adminRouter);
