@@ -29,5 +29,3 @@ module.exports = (userConfig = {}) => {
         ...userConfig
     };
 };
-
-//halo test

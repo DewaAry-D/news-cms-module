@@ -5,10 +5,10 @@ const upload = require('../middlewares/multerMiddleware');
 const {CreateNewsValidationRules, UpdateNewsValidationRules} = require('../validations/newsValidations');
 const {validate} = require('../validations/mainValidation');
 const {parseContentBlocks} = require('../middlewares/parseForm');
+const { isAdmin } = require('../middlewares/authAdminMiddleware');
 
 const NewsController = require('../controllers/NewsController');
 const StatController = require('../controllers/StatController');
-
 
 /**
  * Setup semua route untuk package.
@@ -39,8 +39,8 @@ module.exports = (router, services, config) => {
             statController.trackVisitMiddleware.bind(statController), 
             newsController.getDetail.bind(newsController));
     
-
     const adminRouter = express.Router();
+    adminRouter.use(isAdmin);
     
     adminRouter.get('/create', (req, res) => {
         res.render(path.join(__dirname, '../views/admin/create_news.ejs'));

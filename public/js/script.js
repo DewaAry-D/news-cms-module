@@ -33,6 +33,46 @@ if (menuIcon) {
 }
 // Menu Toggle End
 
+// Dropdown Toggle Start
+document.addEventListener("DOMContentLoaded", () => {
+  const dropdowns = document.querySelectorAll(".dropdown");
+
+  dropdowns.forEach((dropdown) => {
+    const toggle = dropdown.querySelector(".dropdown-toggle");
+    const menu = dropdown.querySelector(".dropdown-menu");
+
+    if (toggle && menu) {
+      toggle.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Close other dropdowns
+        dropdowns.forEach((other) => {
+          if (other !== dropdown) {
+            other.classList.remove("active");
+            other.querySelector(".dropdown-menu")?.classList.remove("show");
+          }
+        });
+
+        // Toggle current
+        dropdown.classList.toggle("active");
+        menu.classList.toggle("show");
+      });
+    }
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", (e) => {
+    dropdowns.forEach((dropdown) => {
+      if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove("active");
+        dropdown.querySelector(".dropdown-menu")?.classList.remove("show");
+      }
+    });
+  });
+});
+// Dropdown Toggle End
+
 // Authentication Check Start
 document.addEventListener("DOMContentLoaded", () => {
   const loginBtn = document.querySelector(".btn-login");
@@ -41,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (loginBtn && isLoggedIn === "true") {
     loginBtn.textContent = "Logout";
     loginBtn.href = "#"; // Prevent immediate redirect
-    
+
     loginBtn.addEventListener("click", (e) => {
       e.preventDefault();
       localStorage.removeItem("isLoggedIn");

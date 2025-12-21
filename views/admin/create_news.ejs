@@ -43,7 +43,7 @@
 
   <!-- Main Content -->
   <main class="main-content">
-    <a href="management.html" class="back-link">
+    <a href="/berita/cms-admin/list" class="back-link">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
         <polyline points="15 18 9 12 15 6"></polyline>
       </svg>
@@ -301,7 +301,7 @@
 
             if (response.ok && result.success) {
                 alert('Berita berhasil disimpan!');
-                window.location.href = 'management.html';
+                window.location.href = '/berita/cms-admin/list';
             } else {
                 alert('Gagal membuat berita: ' + (result.error || 'Terjadi kesalahan server'));
             }
