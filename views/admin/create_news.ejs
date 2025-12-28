@@ -286,7 +286,7 @@
         // Kirim metadata blok sebagai string JSON (Standar multipart/form-data untuk array of objects)
         formData.append('contentBlocks', JSON.stringify(contentBlocksData));
         try {
-            const response = await fetch('./create', {
+            const response = await fetch('create', {
                 method: 'POST',
                 body: formData
                 // Jangan set Header Content-Type, browser akan otomatis mengurusnya untuk FormData
@@ -297,7 +297,7 @@
 
             if (response.ok && result.success) {
                 alert('Berita berhasil disimpan!');
-                window.location.href = './list';
+                window.location.href = '/berita/cms-admin/list';
             } else {
                 alert('Gagal membuat berita: ' + (result.error || 'Terjadi kesalahan server'));
             }
