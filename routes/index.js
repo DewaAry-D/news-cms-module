@@ -42,8 +42,24 @@ module.exports = (router, services, config) => {
     const adminRouter = express.Router();
     adminRouter.use(isAdmin);
     
-    adminRouter.get('/create', (req, res) => {
-        res.render(path.join(__dirname, '../views/admin/create_news.ejs'));
+    // adminRouter.get('/create', (req, res) => {
+    //     res.render(path.join(__dirname, '../views/admin/create_news.ejs'));
+    // });
+
+    router.get('/cms-admin/create', (req, res) => {
+        const appBaseUrl = config.baseUrl; 
+        const newsPrefix = config.newsPrefix;
+        const adminPrefix = config.adminRoutePrefix;
+
+        const fullApiUrl = `${appBaseUrl}${adminPrefix}/create`;
+        const nextUrl = `${newsPrefix}${adminPrefix}/list`
+
+        res.render(path.join(__dirname, "../views/admin/create_news.ejs"), {
+            title: 'Buat Berita Baru',
+
+            apiBaseUrl: fullApiUrl,
+            nextUrl
+        });
     });
     adminRouter.post('/create', beritaUpload, parseContentBlocks, CreateNewsValidationRules, validate, newsController.createPost.bind(newsController));
 

@@ -9,10 +9,8 @@ class NewsService {
 
     async getTrendingNews() {
         try {
-            // 1. Tentukan batas waktu (24 jam yang lalu dari sekarang)
             const last24Hours = new Date(new Date() - 24 * 60 * 60 * 1000);
 
-            // 2. Query untuk menghitung views per berita
             const trending = await this.News.findAll({
                 attributes: [
                     'id',
@@ -22,24 +20,23 @@ class NewsService {
                     'imagePath',
                     'authorName',
                     'createdAt',
-                    // Membuat kolom virtual 'totalViews' dari hasil hitung (COUNT)
                     [fn('COUNT', col('visits.id')), 'totalViews']
                 ],
                 include: [{
                     model: this.VisitorLog,
-                    as: 'visits', // SESUAI dengan alias relasi Anda
-                    attributes: [], // Kita tidak butuh kolom detail dari VisitorLog
+                    as: 'visits',
+                    attributes: [],
                     where: {
                         visitedAt: {
-                            [Op.gt]: last24Hours // Hanya log dalam 24 jam terakhir
+                            [Op.gt]: last24Hours
                         }
                     },
-                    required: true // Menggunakan INNER JOIN agar hanya berita yang ada view-nya yang muncul
+                    required: true 
                 }],
-                group: ['News.id'], // Kelompokkan berdasarkan ID berita
-                order: [[fn('COUNT', col('visits.id')), 'DESC']], // Urutkan terbanyak ke terendah
-                limit: 10, // Ambil 10 teratas
-                subQuery: false // WAJIB false agar LIMIT dan GROUP BY bekerja benar dengan JOIN
+                group: ['News.id'],
+                order: [[fn('COUNT', col('visits.id')), 'DESC']],
+                limit: 10, 
+                subQuery: false 
             });
 
             return trending;

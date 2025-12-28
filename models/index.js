@@ -6,8 +6,11 @@ const VisitorLogModel = require('./VisitorLog');
 module.exports = (config) => {
     const sequelize = new Sequelize(config.database, config.username, config.password, {
         host: config.host,
-        dialect: 'mysql',
-        logging: false,
+        port: config.port, 
+        dialect: config.dialect || 'mysql',
+        dialectOptions: config.dialectOptions,
+        pool: config.pool,
+        logging: config.logging !== undefined ? config.logging : false,
     });
 
     const db = {};

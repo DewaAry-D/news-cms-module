@@ -12,13 +12,13 @@
   <!-- Sidebar -->
   <nav class="sidebar">
     <div class="logo">
-      <a href="index.html" style="display: flex; justify-content: center;"><img src="../../img/logo.png"
+      <a href="index.html" style="display: flex; justify-content: center;"><img src="/berita/img/logo.png"
           alt="Logo DeNews" /></a>
     </div>
 
     <ul class="nav-menu">
       <li class="nav-item">
-        <a href="index.html" class="nav-link">
+        <a href="./dashboard" class="nav-link">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             <polyline points="9 22 9 12 15 12 15 22"></polyline>
@@ -329,13 +329,9 @@
         });
 
         console.log(contentBlocksData);
-        
-        console.log("step 6");
 
         // Kirim metadata blok sebagai string JSON (Standar multipart/form-data untuk array of objects)
         formData.append('contentBlocks', JSON.stringify(contentBlocksData));
-
-        console.log("step 7");
 
         try {
             let url = 'http://localhost:3000/berita/cms-admin/update/' + '<%= data.id %>';
@@ -345,11 +341,7 @@
                 // Jangan set Header Content-Type, browser akan otomatis mengurusnya untuk FormData
             });
 
-            console.log("step 8");
-
             const result = await response.json();
-
-            console.log("step 9");
 
             if (response.ok && result.success) {
                 alert('Berita berhasil disimpan!');

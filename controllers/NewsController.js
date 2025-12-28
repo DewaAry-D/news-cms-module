@@ -37,24 +37,6 @@ class NewsController {
             const categories = await this.newsService.getUniqueCategories();
             const trending = await this.newsService.getTrendingNews();
 
-            //ini mati klo dah ada view
-            // res.status(200).json({
-            //     success: true,
-            //     data: {
-            //         posts,
-            //         categories,
-            //         trending,
-            //         pagination: {
-            //             totalItems,
-            //             totalPages,
-            //             currentPage,
-            //             perPage,
-            //             hasNextPage: currentPage < totalPages,
-            //             hasPrevPage: currentPage > 1
-            //         }
-            //     }
-            // });
-
             //render
             res.render(path.join(__dirname, "../views/home.ejs"), {
                 posts,
@@ -145,13 +127,17 @@ class NewsController {
                 });
             }
 
-            // res.status(200).json({
-            //     success: true,
-            //     data: post
-            // })
+            const appBaseUrl = config.baseUrl; 
+            const newsPrefix = config.newsPrefix;
+            const adminPrefix = config.adminRoutePrefix;
+
+            const fullApiUrl = `${appBaseUrl}${adminPrefix}/create`;
+            const nextUrl = `${newsPrefix}${adminPrefix}/list`
             
             res.render(path.join(__dirname, '../views/admin/update_news.ejs'), { 
-                data: posts
+                data: posts,
+                apiBaseUrl: fullApiUrl,
+                nextUrl
             });
         } catch (error) {
             res.status(500).json({
