@@ -21,48 +21,72 @@ npm install news-cms-module ejs express-session mysql2
 
 ```javascript
 const express = require('express');
-const path = require('path');
+require('dotenv').config();
 const newsModule = require('news-cms-module');
 
 const app = express();
 
 const dbConfig = {
-    database: 'dummy_news',// bisa disesuaikan lagi
-    username: 'root',
-    password: 'your_password',
-    host: 'localhost',};
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT || 3036, // Sesuaikan dengan port db anda
+    username: process.env.DB_USER_NAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    dialect: 'mysql',
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false // Set ke false jika tidak pakai file sertifikat .pem
+        }
+    },
+    // Opsional: tambahkan ini untuk mencegah timeout di koneksi lambat
+    pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+    }
+};
 
-const PORT = 3000;
+// Konfigurasi URL Dinamis
+const PORT = process.env.PORT || 3000;
+const APP_URL = process.env.APP_URL || `http://localhost:${PORT}`;
+const NEWS_PREFIX = '/berita'; // Anda bisa mengganti ini sesuka hati (misal: /news)
 
 async function startServer() {
-    // 1. Middleware Global & View Engine
+    // 1. Inisialisasi Middleware Global
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+    app.use(express.static('public'));
 
-    // Public asset untuk akses gambar berita
-    app.use(express.static('public'))
-    
-    // WAJIB: Atur EJS agar tampilan modul dapat dirender
-    app.set('view engine', 'ejs');
+    try {
+        // 2. Inisialisasi Package (Dijalankan secara ASYNC)
+        const newsRouter = await newsModule(dbConfig, { 
+            adminRoutePrefix: '/cms-admin',
+            newsPrefix: NEWS_PREFIX,
+            baseUrl: APP_URL + NEWS_PREFIX,
+        });
 
-    // 2. Inisialisasi Modul News
-    // Package dijalankan secara ASYNC karena sinkronisasi database
-    const newsRouter = await newsModule(dbConfig, { 
-        adminRoutePrefix: '/cms-admin',
-        sessionSecret: 'news_cms_secret_key'});
+        // 3. Pasang Router ke Prefix URL
+        // Ini akan membuat rute: /berita/list, /berita/cms-admin, dll.
+        app.use(NEWS_PREFIX, newsRouter);
 
-    // 3. Pasang Router ke Prefix URL Host
-    app.use('/berita', newsRouter);
-
-    // 4. Jalankan Server
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-        console.log(`User Interface: http://localhost:${PORT}/berita/list`);
-        console.log(`Admin Dashboard: http://localhost:${PORT}/berita/cms-admin/dashboard`);
-    });
+        // 4. Jalankan Server
+        app.listen(PORT, () => {
+            console.log(`Server Berhasil Dijalankan!`);
+            console.log(`Base URL   : ${APP_URL}`);
+            console.log(`API Berita : ${APP_URL}${NEWS_PREFIX}/list`);
+            console.log(`Admin CMS  : ${APP_URL}${NEWS_PREFIX}/cms-admin/dashboard`);
+        });
+    } catch (error) {
+        console.error("Gagal menjalankan server:", error);
+    }
 }
 
 startServer();
 ```
-
 pastikan untuk menyesuaikan bagian authAdminMiddleware pada module  di bagian middlewares. Sesuaikan dengan preferensi tabel user masing-masing.
+
+
+github news-cms-module: https://github.com/DewaAry-D/news-cms-module.git
+github contoh implementasi: https://github.com/DewaAry-D/dummy-news.git
