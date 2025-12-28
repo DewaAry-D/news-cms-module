@@ -4,6 +4,8 @@ const defaultConfig = {
     // Pengaturan Router
     adminRoutePrefix: '/admin',       // Prefix default untuk route CRUD admin
     publicRoutePrefix: '/',           // Prefix default untuk route publik
+    newsPrefix: '/berita',            // Prefix defaul umum contohnya /berita/{..}
+    baseURL: '',                      // Prefix defaul untuk fetch API
 
     // Pengaturan Views
     viewEngine: 'ejs',                // Template engine default
@@ -29,5 +31,3 @@ module.exports = (userConfig = {}) => {
         ...userConfig
     };
 };
-
-//halo test

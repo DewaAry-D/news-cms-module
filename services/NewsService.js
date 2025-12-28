@@ -9,35 +9,34 @@ class NewsService {
 
     async getTrendingNews() {
         try {
-            // 1. Tentukan batas waktu (24 jam yang lalu dari sekarang)
             const last24Hours = new Date(new Date() - 24 * 60 * 60 * 1000);
 
-            // 2. Query untuk menghitung views per berita
             const trending = await this.News.findAll({
                 attributes: [
-                    'id', 
-                    'title', 
-                    'slug', 
-                    'category', 
+                    'id',
+                    'title',
+                    'slug',
+                    'category',
                     'imagePath',
-                    // Membuat kolom virtual 'totalViews' dari hasil hitung (COUNT)
+                    'authorName',
+                    'createdAt',
                     [fn('COUNT', col('visits.id')), 'totalViews']
                 ],
                 include: [{
                     model: this.VisitorLog,
-                    as: 'visits', // SESUAI dengan alias relasi Anda
-                    attributes: [], // Kita tidak butuh kolom detail dari VisitorLog
+                    as: 'visits',
+                    attributes: [],
                     where: {
                         visitedAt: {
-                            [Op.gt]: last24Hours // Hanya log dalam 24 jam terakhir
+                            [Op.gt]: last24Hours
                         }
                     },
-                    required: true // Menggunakan INNER JOIN agar hanya berita yang ada view-nya yang muncul
+                    required: true 
                 }],
-                group: ['News.id'], // Kelompokkan berdasarkan ID berita
-                order: [[fn('COUNT', col('visits.id')), 'DESC']], // Urutkan terbanyak ke terendah
-                limit: 10, // Ambil 10 teratas
-                subQuery: false // WAJIB false agar LIMIT dan GROUP BY bekerja benar dengan JOIN
+                group: ['News.id'],
+                order: [[fn('COUNT', col('visits.id')), 'DESC']],
+                limit: 10, 
+                subQuery: false 
             });
 
             return trending;
@@ -52,7 +51,6 @@ class NewsService {
             attributes: [
                 [fn('DISTINCT', col('category')), 'category']
             ],
-            where: { status: 'PUBLISHED' },
             raw: true
         });
         return categories.map(item => item.category).filter(Boolean);
@@ -77,12 +75,12 @@ class NewsService {
             where.status = status;
         }
         if (title) {
-            where.title = { [Op.like]: `%${title}%` }; 
+            where.title = { [Op.like]: `%${title}%` };
         }
         if (category) {
             where.category = category;
         }
-        
+
         return await this.News.findAndCountAll({
             where: where,
             limit: limit,
@@ -119,7 +117,9 @@ class NewsService {
     async createPost(newsData, contentBlocks, files) {
         return this.News.sequelize.transaction(async (t) => {
             const rawPath = files['thumbnailImage']?.[0]?.path;
-            newsData.imagePath = rawPath ? rawPath.replace(/\\/g, '/') : null;
+            newsData.imagePath = rawPath 
+                ? rawPath.replace(/\\/g, '/').replace(/^public/, '') 
+                : null;
             const newsItem = await this.News.create(newsData, { transaction: t });
 
             let blocks = [];
@@ -128,7 +128,7 @@ class NewsService {
                 console.log(element);
                 if (element.blockType == "IMAGE") {
                     const rawPathE = files['contentImages']?.[count]?.path;
-                    element.contentValue = rawPathE ? rawPathE.replace(/\\/g, '/') : null;
+                    element.contentValue = rawPathE.replace(/\\/g, '/').replace(/^public/, '');
                     count++;
                 }
                 element.newsId = newsItem.id;
@@ -148,7 +148,7 @@ class NewsService {
                 include: [{ model: this.ContentNews, as: 'contentBlocks' }],
                 transaction: t
             });
-            
+
             if (!oldNews) throw new Error("Berita tidak ditemukan");
 
             let filesToDelete = [];
@@ -156,7 +156,8 @@ class NewsService {
             if (files['thumbnailImage']?.[0]) {
                 if (oldNews.imagePath) filesToDelete.push(oldNews.imagePath);
                 const rawPath = files['thumbnailImage'][0].path;
-                newsData.imagePath = rawPath.replace(/\\/g, '/');
+                // newsData.imagePath = rawPath.replace(/\\/g, '/');
+                newsData.imagePath = rawPath.replace(/\\/g, '/').replace(/^public/, '');
             } else {
                 newsData.imagePath = oldNews.imagePath;
             }
@@ -164,7 +165,7 @@ class NewsService {
             await oldNews.update(newsData, { transaction: t });
 
             const oldBlocks = oldNews.contentBlocks || [];
-            
+
             await this.ContentNews.destroy({
                 where: { newsId: id },
                 transaction: t
@@ -176,16 +177,17 @@ class NewsService {
             contentBlocks.forEach((element, index) => {
                 if (element.blockType === "IMAGE") {
                     const newFile = files['contentImages']?.[imageCount];
-                    
+
                     if (newFile) {
                         const rawPathE = newFile.path;
-                        element.contentValue = rawPathE.replace(/\\/g, '/');
+                        // element.contentValue = rawPathE.replace(/\\/g, '/');
+                        element.contentValue = rawPathE.replace(/\\/g, '/').replace(/^public/, '');
                         imageCount++;
                     } else {
-                        element.contentValue = element.contentValue; 
+                        element.contentValue = element.contentValue;
                     }
                 }
-                
+
                 element.newsId = id;
                 element.order = index + 1;
                 blocks.push(element);
@@ -201,8 +203,8 @@ class NewsService {
         const news = await this.News.findByPk(id);
         if (!news) throw new Error("Berita tidak ditemukan");
 
-        await news.update({ 
-            status: status 
+        await news.update({
+            status: status
         });
 
         return news;
@@ -214,7 +216,7 @@ class NewsService {
     }
 
     async dashboardAdmin(currentYear) {
-        const newsCount = await this.News.count(); 
+        const newsCount = await this.News.count();
 
         const monthlyVisitors = await this.VisitorLog.findAll({
             attributes: [
@@ -235,7 +237,7 @@ class NewsService {
             col: 'category'
         });
 
-        return { newsCount, categoryCount, monthlyVisitors,totalYearlyVisitors };
+        return { newsCount, categoryCount, monthlyVisitors, totalYearlyVisitors };
     }
 }
 

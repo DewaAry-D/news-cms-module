@@ -4,10 +4,11 @@ const path = require('path');
 const upload = require('../middlewares/multerMiddleware');
 const {CreateNewsValidationRules, UpdateNewsValidationRules} = require('../validations/newsValidations');
 const {validate} = require('../validations/mainValidation');
+const {parseContentBlocks} = require('../middlewares/parseForm');
+const { isAdmin } = require('../middlewares/authAdminMiddleware');
 
 const NewsController = require('../controllers/NewsController');
 const StatController = require('../controllers/StatController');
-
 
 /**
  * Setup semua route untuk package.
@@ -38,17 +39,37 @@ module.exports = (router, services, config) => {
             statController.trackVisitMiddleware.bind(statController), 
             newsController.getDetail.bind(newsController));
     
-
     const adminRouter = express.Router();
+    adminRouter.use(isAdmin);
+    
+    // adminRouter.get('/create', (req, res) => {
+    //     res.render(path.join(__dirname, '../views/admin/create_news.ejs'));
+    // });
 
+    router.get('/cms-admin/create', (req, res) => {
+        const appBaseUrl = config.baseUrl; 
+        const newsPrefix = config.newsPrefix;
+        const adminPrefix = config.adminRoutePrefix;
+
+        const fullApiUrl = `${appBaseUrl}${adminPrefix}/create`;
+        const nextUrl = `${newsPrefix}${adminPrefix}/list`
+
+        res.render(path.join(__dirname, "../views/admin/create_news.ejs"), {
+            title: 'Buat Berita Baru',
+
+            apiBaseUrl: fullApiUrl,
+            nextUrl
+        });
+    });
+    adminRouter.post('/create', beritaUpload, parseContentBlocks, CreateNewsValidationRules, validate, newsController.createPost.bind(newsController));
+
+    adminRouter.get('/update/:slug', newsController.getEditForAdmin.bind(newsController));
+    adminRouter.patch('/update/:id', newsController.updateStatusNews.bind(newsController)); 
+    adminRouter.put('/update/:id', beritaUpload, parseContentBlocks, UpdateNewsValidationRules, validate, newsController.updatePost.bind(newsController)); 
+    
     adminRouter.get('/dashboard', newsController.dashboardAdmin.bind(newsController)); 
     adminRouter.get('/list', newsController.adminList.bind(newsController)); 
     adminRouter.get('/:slug', newsController.getDetailForAdmin.bind(newsController)); 
-
-    adminRouter.post('/create', beritaUpload, CreateNewsValidationRules, validate, newsController.createPost.bind(newsController)); 
-    adminRouter.patch('/update/:id', newsController.updateStatusNews.bind(newsController)); 
-    adminRouter.put('/update/:id', beritaUpload, UpdateNewsValidationRules, validate, newsController.updatePost.bind(newsController)); 
-    
 
     adminRouter.delete('/delete/:id', newsController.deletePost.bind(newsController)); 
     router.use(config.adminRoutePrefix, adminRouter);

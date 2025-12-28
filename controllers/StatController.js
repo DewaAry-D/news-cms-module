@@ -9,11 +9,7 @@ class StatController {
             const slug = req.params.slug;
             const post = await this.newsService.getPostBySlug(slug);
 
-            console.log("step 1");
-            
-
             if (post) {
-                console.log("sebelum if");
                 if (!req.session.viewedPosts) {
                     req.session.viewedPosts = [];
                 }
