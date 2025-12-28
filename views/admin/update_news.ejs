@@ -334,7 +334,7 @@
         formData.append('contentBlocks', JSON.stringify(contentBlocksData));
 
         try {
-            let url = 'http://localhost:3000/berita/cms-admin/update/' + '<%= data.id %>';
+            let url = './update/' + '<%= data.id %>';
             const response = await fetch( url, {
                 method: 'PUT',
                 body: formData

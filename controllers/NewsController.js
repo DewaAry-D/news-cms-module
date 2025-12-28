@@ -126,18 +126,9 @@ class NewsController {
                     error: 'news tidak ditemukan'
                 });
             }
-
-            const appBaseUrl = config.baseUrl; 
-            const newsPrefix = config.newsPrefix;
-            const adminPrefix = config.adminRoutePrefix;
-
-            const fullApiUrl = `${appBaseUrl}${adminPrefix}/create`;
-            const nextUrl = `${newsPrefix}${adminPrefix}/list`
             
             res.render(path.join(__dirname, '../views/admin/update_news.ejs'), { 
-                data: posts,
-                apiBaseUrl: fullApiUrl,
-                nextUrl
+                data: posts
             });
         } catch (error) {
             res.status(500).json({
